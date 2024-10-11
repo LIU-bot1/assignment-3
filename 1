@@ -1,0 +1,32 @@
+import jetson.inference
+import jetson.utils
+
+# 加载对象检测模型
+net = jetson.inference.detectNet("ssd-mobilenet-v2", threshold=0.5)
+
+# 加载输入图片
+img = jetson.utils.loadImage("path/to/your/image.jpg")  # 替换为你的图片路径
+
+if img is not None:
+    # 输出图像参数
+    width, height = img.GetWidth(), img.GetHeight()
+    channels = img.NumChannels()
+    print("Width: {}, Height: {}, Channels: {}".format(width, height, channels))
+
+    # 进行对象检测
+    detections = net.Detect(img)
+
+    # 输出检测结果
+    print("Detections: ", len(detections))  # 输出检测到的对象数量
+    for detection in detections:
+        print("Class ID: {}, Confidence: {:.2f}, Bounding Box: ({}, {}, {}, {})".format(
+            detection.ClassID, detection.Confidence,
+            detection.Left, detection.Top, detection.Right, detection.Bottom
+        ))
+
+    # 可视化结果
+    display = jetson.utils.videoOutput("display://0")
+    display.Render(img)
+    display.SetStatus("Object Detection | Network {:.0f} FPS".format(net.GetNetworkFPS()))
+else:
+    print("无法加载图像")
